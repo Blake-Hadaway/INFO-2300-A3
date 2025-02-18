@@ -1,0 +1,209 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ConestogaVirtualGameStore</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/MyVirtualGameStore.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
+    @using Microsoft.AspNetCore.Identity
+    @inject UserManager<ApplicationUser> UserManager
+    @using ConestogaVirtualGameStore.Models;
+</head>
+<body id="body">
+    <header>
+        <nav id="NavBar" class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index" style="color:white; font-size: 35px; font-weight:bold;">Conestoga Game Store</a>
+                <div class="collapse navbar-collapse">
+                    <form class="form-inline my-2 my-lg-0 ml-auto" id="gameSearchForm" onsubmit="return false;">
+                        <input class="form-control mr-sm-2" id="gameSearchInput" type="search" placeholder="Search games by title or genre" aria-label="Search" onkeyup="searchGames(this.value)">
+                        <div id="searchResultsDropdown" class="dropdown-menu" aria-labelledby="gameSearchInput"></div>
+                    </form>
+                </div>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        @if (!User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="" asp-controller="Games" asp-action="Index">Games</a>
+                            </li>
+                            @if (User.IsInRole("Member"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-area="" asp-controller="Events" asp-action="Events">Events</a>
+                                </li>
+                            }
+                        }
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="" asp-controller="Games" asp-action="Games">Manage Games</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="" asp-controller="Events" asp-action="ManageEvents">Manage Events</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="" asp-controller="Member" asp-action="Members">Manage Members</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="" asp-controller="Reviews" asp-action="ManageReviews">Manage Reviews</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="" asp-controller="Orders" asp-action="ManageOrders">Manage Orders</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-area="" asp-controller="Reports" asp-action="Reports">Reports</a>
+                            </li>
+                        }
+
+
+                    </ul>
+                </div>
+
+
+
+                <div class="collapse navbar-collapse justify-content-end">
+                    <ul class="navbar-nav">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            try
+                            {
+                                var user = await UserManager.GetUserAsync(User); // Get the current user
+                                <li class="nav-item">
+                                    <a class="nav-link text-white">Hello, @user.FirstName</a>
+                                </li>
+                            }
+                            catch (NullReferenceException)
+                            {
+                                Console.WriteLine("You will need to log out of this account as it no longer exist");
+                            }
+                            <li class="nav-item">
+                                <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm" class="nav-item">
+                                    <button type="submit" class="btn btn-outline-light rounded-pill">Logout</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link btn btn-outline-light rounded-pill" asp-controller="Account" asp-action="Login">Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link btn btn-outline-light rounded-pill ms-2" asp-controller="Account" asp-action="Register">Sign Up</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+                @if (User.IsInRole("Member"))
+                {
+                    <div class="d-flex align-items-center me-3">
+                        <a href="@Url.Action("Cart", "Cart")" class="nav-link">
+                            <i class="fas fa-shopping-cart fa-lg"></i>
+                            <span class="badge bg-danger" style="display: inline-block" id="cartQuantity"></span>
+                        </a>
+                    </div>
+
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                        <ul class="navbar-nav">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Profile
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                    <li><a class="dropdown-item" asp-controller="Member" asp-action="PersonalInfo">Personal Info</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Member" asp-action="Preferences">Preferences</a></li>
+                                    <li><a class="dropdown-item" asp-controller="CreditCards" asp-action="CreditCards">Credit Cards</a></li>
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="Events" asp-action="RegisteredEvents">Registered Events</a></li>
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="Wishlists" asp-action="Wishlists">Wishlist</a></li>
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="Relationships" asp-action="Friends">Friends</a></li>
+                                    <li><a class="dropdown-item" asp-area="" asp-controller="Relationships" asp-action="Family">Family</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Orders" asp-action="Orders">Orders</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                }
+            </div>
+        </nav>
+    </header>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script>
+        function searchGames(query) {
+            if (query.length === 0) {
+                $('#searchResultsDropdown').empty().hide();
+                return;
+            }
+            $.ajax({
+                url: '@Url.Action("SearchGames", "Games")',
+                data: { query: query },
+                success: function (data) {
+                    $('#searchResultsDropdown').empty();
+                    if (data.success && data.results.length > 0) {
+                        data.results.forEach(function (game) {
+                            $('#searchResultsDropdown').append('<a class="dropdown-item" href="/Games/GameDetail/' + game.gameId + '">' + game.title + ' (' + game.genere + ')</a>');
+                        });
+                        $('#searchResultsDropdown').show();
+                    } else {
+                        $('#searchResultsDropdown').append('<span class="dropdown-item disabled">No results found</span>').show();
+                    }
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            $.ajax({
+                url: '@Url.Action("GetCartQuantity", "Cart")',
+                success: function (data) {
+                    $('#cartQuantity').append(data.results);
+                }
+            });
+        });
+
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('#gameSearchForm').length) {
+                $('#searchResultsDropdown').hide();
+            }
+        });
+    </script>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+<footer id="Footer" class=" footer text-white">
+    <div class="container">
+        &copy; 2024 - Conestoga Virtual Game Store
+    </div>
+</footer>
+</html>
